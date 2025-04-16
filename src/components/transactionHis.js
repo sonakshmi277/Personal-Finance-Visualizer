@@ -8,8 +8,10 @@ export default function TransactionHis() {
   const [editFormData, setEditFormData] = useState({
     Amount: "",
     Description: "",
-    date: ""
+    date: "",
+    category: ""
   });
+  const predefinedCategories = ['Food', 'Bills', 'Entertainment', 'Income', 'Transportation', 'Other'];
 
   const fetchData = async () => {
     try {
@@ -26,17 +28,15 @@ export default function TransactionHis() {
     fetchData();
   }, []);
 
-
-
   const handleDelete = (index) => {
     const transactionToDelete = datas[index];
     axios.delete(`http://localhost:8000/deleteTransaction/${transactionToDelete._id}`)
       .then(response => {
-        console.log("Transaction deleted successfully:", response.data);
+        console.log("Transaction deleted:", response.data);
         setDatas(datas => datas.filter((_, i) => i !== index));
       })
       .catch(error => {
-        console.error("Error deleting transaction:", error);
+        console.error("Error in deleting transaction:", error);
       });
   };
 
@@ -46,7 +46,8 @@ export default function TransactionHis() {
     setEditFormData({
       Amount: transactionToEdit.Amount,
       Description: transactionToEdit.Description,
-      date: new Date(transactionToEdit.date).toISOString().split('T')[0]
+      date: new Date(transactionToEdit.date).toISOString().split('T')[0],
+      category: transactionToEdit.category
     });
   };
 
@@ -84,6 +85,7 @@ export default function TransactionHis() {
         <table>
           <thead>
             <tr>
+              <th>Category</th>
               <th>Amount</th>
               <th>Description</th>
               <th>Date</th>
@@ -96,20 +98,34 @@ export default function TransactionHis() {
               <tr key={index}>
                 {editingIndex === index ? (
                   <>
-                    <td><input type="number" name="Amount" value={editFormData.Amount} onChange={handleEditInputChange} /></td>
-                    <td><textarea name="Description" value={editFormData.Description} onChange={handleEditInputChange} /></td>
-                    <td><input type="date" name="date" value={editFormData.date} onChange={handleEditInputChange} /></td>
-                    <td></td>
-                    <td onClick={() => handleCancelEdit()}>❌</td>
-                    <td onClick={() => handleSaveEdit(index)}>💾</td>
+                    <td>
+                      <select
+                        name="category"
+                        value={editFormData.category}
+                        onChange={handleEditInputChange}
+                        className="w-full border rounded-md shadow-sm focus:ring focus:ring-indigo-200 focus:border-indigo-500"
+                        required
+                      >
+                        <option value="">Select Category</option>
+                        {predefinedCategories.map((cat) => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td><input type="number" name="Amount" value={editFormData.Amount} onChange={handleEditInputChange} className="w-full border rounded-md shadow-sm focus:ring focus:ring-indigo-200 focus:border-indigo-500" /></td>
+                    <td><textarea name="Description" value={editFormData.Description} onChange={handleEditInputChange} className="w-full border rounded-md shadow-sm focus:ring focus:ring-indigo-200 focus:border-indigo-500" /></td>
+                    <td><input type="date" name="date" value={editFormData.date} onChange={handleEditInputChange} className="w-full border rounded-md shadow-sm focus:ring focus:ring-indigo-200 focus:border-indigo-500" /></td>
+                    <td onClick={() => handleCancelEdit()} className="cursor-pointer text-red-500">❌</td>
+                    <td onClick={() => handleSaveEdit(index)} className="cursor-pointer text-green-500">💾</td>
                   </>
                 ) : (
                   <>
+                    <td>{item.category}</td>
                     <td>₹{item.Amount}</td>
                     <td>{item.Description}</td>
                     <td>{new Date(item.date).toLocaleDateString('en-GB')}</td>
-                    <td onClick={() => handleDelete(index)}>🗑️</td>
-                    <td onClick={() => handleEdit(index)}>✏️</td>
+                    <td onClick={() => handleDelete(index)} className="cursor-pointer text-red-500">🗑️</td>
+                    <td onClick={() => handleEdit(index)} className="cursor-pointer text-blue-500">✏️</td>
                   </>
                 )}
               </tr>

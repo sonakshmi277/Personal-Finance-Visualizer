@@ -29,20 +29,30 @@ mongoose.connect("mongodb://localhost:27017/all_details", {
 
 
 app.post('/getTransactionHistory', async (req, res) => {
-  try {
-    console.log("Received Data:", req.body);
-    const newTransaction = new details_schema({
-      Amount: req.body.Amount,
-      Description: req.body.Description,
-      date: req.body.date
-    });
-    const savedTransaction = await newTransaction.save();
-    console.log("Saved Transaction:", savedTransaction);
-    return res.json({ message: "Transaction added successfully.", savedTransaction });
-  } catch (err) {
-    console.error("Error saving to DB:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
+    try {
+      console.log("Received Data:", req.body);
+      const newTransaction = new details_schema({
+        Amount: req.body.Amount,
+        Description: req.body.Description,
+        date: req.body.date,
+        category: req.body.category 
+      });
+      const savedTransaction = await newTransaction.save();
+      console.log("Saved Transaction:", savedTransaction);
+      return res.json({ message: "Transaction added successfully.", savedTransaction });
+    } catch (err) {
+      console.error("Error saving to DB:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+app.get("/getAllTransaction", async (req, res) => {
+    try {
+        const transactions = await details_schema.find({});
+        res.status(200).json(transactions);
+    } catch (error) {
+        console.error('Error fetching transactions:', error);
+        res.status(500).json({ message: 'Error fetching transactions' });
+    }
 });
 
 app.post('/showData', async (req, res) => {
@@ -70,23 +80,24 @@ app.delete('/deleteTransaction/:id', async (req, res) => {
 });
 
 app.put('/updateTransaction/:id', async (req, res) => {
-  const transactionId = req.params.id;
-  try {
-    const updatedTransaction = await details_schema.findByIdAndUpdate(
-      transactionId,
-      {
-        Amount: req.body.Amount,
-        Description: req.body.Description,
-        date: req.body.date
-      },
-      { new: true }
-    );
-    if (!updatedTransaction) {
-      return res.status(404).json({ message: 'Transaction not found' });
+    const transactionId = req.params.id;
+    try {
+      const updatedTransaction = await details_schema.findByIdAndUpdate(
+        transactionId,
+        {
+          Amount: req.body.Amount,
+          Description: req.body.Description,
+          date: req.body.date,
+          category: req.body.category 
+        },
+        { new: true }
+      );
+      if (!updatedTransaction) {
+        return res.status(404).json({ message: 'Transaction not found' });
+      }
+      res.json({ message: 'Transaction updated successfully', updatedTransaction });
+    } catch (err) {
+      console.error('Error updating transaction:', err);
+      res.status(500).json({ error: 'Internal server error' });
     }
-    res.json({ message: 'Transaction updated successfully', updatedTransaction });
-  } catch (err) {
-    console.error('Error updating transaction:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+  });
